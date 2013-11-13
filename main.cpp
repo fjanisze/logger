@@ -112,6 +112,7 @@ try{
 		long avg_per_print = per_print.count();
 		io_file<< num <<": Avg execution time: "<< avg_exec_time <<" us ("<<( (double) ( avg_exec_time - last_tot_execution_time ) / last_tot_execution_time ) * 100<<"%) \tAvg per print: "<< avg_per_print <<" ns (" << ( (double) ( avg_per_print - last_print_execution_time ) / last_print_execution_time ) * 100<<"%) \tExec. loop:"<<exec_loop<<"\tThreads: "<<4<<"\tPrints: "<< amount*4*exec_loop<<endl;
 	}
+	log_inst.terminate_logger();
 	return 0;
 }catch( ... )
 {
