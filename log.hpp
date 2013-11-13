@@ -6,6 +6,10 @@
 #include <ctime>
 #include <sstream>
 #include <mutex>
+#include <chrono>
+#include <cstring>
+#include <thread>
+#include <map>
 
 #ifndef LOG_HPP
 #define LOG_HPP
@@ -23,7 +27,6 @@ namespace logging
 		virtual void		open_ostream(const std::string& name) = 0;
 		virtual void		close_ostream() = 0;
 		virtual void		write(const std::string& msg) = 0;
-
 	};
 
 	/*
@@ -52,13 +55,26 @@ namespace logging
 	 * the Logger class, shall be instantiated with a specific log_policy
 	 */
 
+	struct thread_id_t
+	{
+		static long global_id_num;
+		long this_id_num;
+		thread_id_t()
+		{
+			this_id_num = ++global_id_num;
+		}
+	};
+
 	template< typename log_policy >
 	class logger
 	{
+		static std::string source_name;
+		std::chrono::high_resolution_clock::time_point reference_epoch;
+		
 		unsigned log_line_number;
-		std::string get_time();
-		std::string get_logline_header();
-		std::stringstream log_stream;
+
+		static std::stringstream log_stream;
+		static std::thread::id thread_local source_thread_id;
 		log_policy* policy;
 		std::mutex write_mutex;
 
@@ -66,37 +82,83 @@ namespace logging
 		void print_impl();
 		template<typename First, typename...Rest>
 		void print_impl(First parm1, Rest...parm);
+		std::map< std::thread::id , std::string > thread_name;
+
 	public:
 		logger( const std::string& name ) throw( std::bad_alloc );
 
-		template< severity_type severity , typename...Args >
+		template< severity_type severity , const long thread_id , typename...Args >
 		void print( Args...args );
+
+		void set_thread_name( const std::string& name );
 
 		~logger();
 	};
+
+	template< typename log_policy >
+	std::string logger< log_policy >::source_name{};
+
+	template< typename log_policy >
+	std::stringstream logger< log_policy >::log_stream{};
+
+	template< typename log_policy >
+	std::thread::id thread_local logger< log_policy >::source_thread_id{};
 
 	/*
 	 * Implementation for logger
 	 */
 
 	template< typename log_policy >
-		template< severity_type severity , typename...Args >
+	void logger< log_policy >::set_thread_name( const std::string& name )
+	{
+		thread_name[ std::this_thread::get_id() ] = name;
+	}
+
+	template< typename log_policy >
+		template< severity_type severity , const long thread_id , typename...Args >
 	void logger< log_policy >::print( Args...args )
 	{
 		std::lock_guard< std::mutex > lock( write_mutex );
+		log_stream.str("");
+		//Prepare the header
+		auto cur_time = std::chrono::high_resolution_clock::now();
+		std::time_t tt = std::chrono::high_resolution_clock::to_time_t( cur_time );
+		char* tt_s = ctime( &tt );
+		tt_s[ strlen( tt_s ) - 1 ] = 0;
+
+		log_stream << log_line_number++ <<" < "<< tt_s <<" - ";
+		log_stream << std::chrono::duration_cast< std::chrono::milliseconds >( cur_time - reference_epoch  ).count() <<"ms > ";
+
 		switch( severity )
 		{
 			case severity_type::debug:
-				log_stream<<"<DEBUG>~:";
+				log_stream<<" DBG/";
 				break;
 			case severity_type::warning:
-				log_stream<<"<WARNING>~:";
+				log_stream<<" WRN/";
 				break;
 			case severity_type::error:
-				log_stream<<"<ERROR>~:";
+				log_stream<<" ERR/";
 				break;
 		};
+		log_stream << thread_name[ std::this_thread::get_id() ] <<": ";
 		print_impl( args... );
+	}
+
+	template< typename log_policy >
+	void logger< log_policy >::print_impl()
+	{
+	
+		policy->write( log_stream.str() );
+		log_stream.str("");
+	}
+
+	template< typename log_policy >
+		template<typename First, typename...Rest >
+	void logger< log_policy >::print_impl(First parm1, Rest...parm)
+	{
+		log_stream << parm1;
+		print_impl(parm...);
 	}
 
 	template< typename log_policy >
@@ -105,49 +167,7 @@ namespace logging
 		log_line_number = 0;
 		policy = new log_policy;
 		policy->open_ostream( name );
-	}
-
-	template< typename log_policy >
-	std::string logger< log_policy >::get_time()
-	{
-		std::string time_str;
-		time_t raw_time;
-
-		time( & raw_time );
-		time_str = ctime( &raw_time );
-
-		//without the newline character
-		return time_str.substr( 0 , time_str.size() - 1 );
-	}
-
-	template< typename log_policy >
-	std::string logger< log_policy >::get_logline_header()
-	{
-		std::stringstream header;
-
-		header.str("");
-		header.fill('0');
-		header << log_line_number++ <<" < "<<get_time()<<" - ";
-
-		header.fill('0');
-		header <<clock()<<" >~";
-
-		return header.str();
-	}
-
-	template< typename log_policy >
-	void logger< log_policy >::print_impl()
-	{
-		policy->write( get_logline_header() + log_stream.str() );
-		log_stream.str("");
-	}
-
-	template< typename log_policy >
-		template<typename First, typename...Rest >
-	void logger< log_policy >::print_impl(First parm1, Rest...parm)
-	{
-		log_stream<<parm1;
-		print_impl(parm...);
+		reference_epoch = std::chrono::high_resolution_clock::now();
 	}
 
 	template< typename log_policy >

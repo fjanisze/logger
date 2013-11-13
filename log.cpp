@@ -1,8 +1,12 @@
 #include "log.hpp"
 #include <cassert>
+#include "log.hpp"
 
 namespace logging
-{
+{		
+
+	long thread_id_t::global_id_num = 0;
+
 	void file_log_policy::open_ostream(const std::string& name)
 	{
 		out_stream->open( name.c_str(), std::ios_base::binary|std::ios_base::out );
