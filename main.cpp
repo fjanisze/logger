@@ -27,12 +27,12 @@ void heavily_logging_thread( long amount )
 	auto gen = bind( uniform_int_distribution<>{ 0 , 4 }, default_random_engine{} );
 	for( long i = 0 ; i < amount ; i++ )
 	{
-		LOG(0)("heavily_logging_thread(): This is one (",i,") of ", amount, " prints, thread: ",this_thread::get_id(),", ", prints[ gen() ] );
+		LOG("heavily_logging_thread(): This is one (",i,") of ", amount, " prints, thread: ",this_thread::get_id(),", ", prints[ gen() ] );
 	}
 }
 
 int main()
-{
+try{
 	log_inst.set_thread_name( "MAIN" );
 	fstream io_file("exec_info.txt" , ios_base::in);
 	long num = 0;
@@ -96,7 +96,7 @@ int main()
 
 			for( long i = 0 ; i < amount ; i++ )
 			{
-				LOG(0)("main(): This is one (",i,") of ", amount, " prints that are going to be printed by the thread ",this_thread::get_id() );
+				LOG("main(): This is one (",i,") of ", amount, " prints that are going to be printed by the thread ",this_thread::get_id() );
 			}
 
 			th1.join();
@@ -113,4 +113,7 @@ int main()
 		io_file<< num <<": Avg execution time: "<< avg_exec_time <<" us ("<<( (double) ( avg_exec_time - last_tot_execution_time ) / last_tot_execution_time ) * 100<<"%) \tAvg per print: "<< avg_per_print <<" ns (" << ( (double) ( avg_per_print - last_print_execution_time ) / last_print_execution_time ) * 100<<"%) \tExec. loop:"<<exec_loop<<"\tThreads: "<<4<<"\tPrints: "<< amount*4*exec_loop<<endl;
 	}
 	return 0;
+}catch( ... )
+{
+	LOG_ERR("main(): Exception caught at this point, this is fatal!");
 }

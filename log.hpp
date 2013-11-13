@@ -10,6 +10,7 @@
 #include <cstring>
 #include <thread>
 #include <map>
+#include <queue>
 
 #ifndef LOG_HPP
 #define LOG_HPP
@@ -55,16 +56,6 @@ namespace logging
 	 * the Logger class, shall be instantiated with a specific log_policy
 	 */
 
-	struct thread_id_t
-	{
-		static long global_id_num;
-		long this_id_num;
-		thread_id_t()
-		{
-			this_id_num = ++global_id_num;
-		}
-	};
-
 	template< typename log_policy >
 	class logger
 	{
@@ -74,20 +65,22 @@ namespace logging
 		unsigned log_line_number;
 
 		static std::stringstream log_stream;
-		static std::thread::id thread_local source_thread_id;
 		log_policy* policy;
 		std::mutex write_mutex;
 
+		std::vector< std::string > log_buffer;
+
 		//Core printing functionality
 		void print_impl();
+
 		template<typename First, typename...Rest>
 		void print_impl(First parm1, Rest...parm);
-		std::map< std::thread::id , std::string > thread_name;
 
+		std::map< std::thread::id , std::string > thread_name;
 	public:
 		logger( const std::string& name ) throw( std::bad_alloc );
 
-		template< severity_type severity , const long thread_id , typename...Args >
+		template< severity_type severity , typename...Args >
 		void print( Args...args );
 
 		void set_thread_name( const std::string& name );
@@ -101,9 +94,6 @@ namespace logging
 	template< typename log_policy >
 	std::stringstream logger< log_policy >::log_stream{};
 
-	template< typename log_policy >
-	std::thread::id thread_local logger< log_policy >::source_thread_id{};
-
 	/*
 	 * Implementation for logger
 	 */
@@ -115,7 +105,7 @@ namespace logging
 	}
 
 	template< typename log_policy >
-		template< severity_type severity , const long thread_id , typename...Args >
+		template< severity_type severity , typename...Args >
 	void logger< log_policy >::print( Args...args )
 	{
 		std::lock_guard< std::mutex > lock( write_mutex );
@@ -141,20 +131,32 @@ namespace logging
 				log_stream<<" ERR/";
 				break;
 		};
-		log_stream << thread_name[ std::this_thread::get_id() ] <<": ";
+		log_stream << thread_name[ std::this_thread::get_id() ] <<", ";
 		print_impl( args... );
 	}
 
 	template< typename log_policy >
 	void logger< log_policy >::print_impl()
 	{
-	
-		policy->write( log_stream.str() );
+		//Buffer the message for some time	
+		if( log_buffer.size() > 10 )
+		{
+			for( auto& elem : log_buffer)
+			{
+				policy->write( elem );
+			}
+			log_buffer.clear();
+		}
+		else
+		{
+			log_buffer.push_back( log_stream.str() );
+		}
+		//policy->write( log_stream.str() );
 		log_stream.str("");
 	}
 
 	template< typename log_policy >
-		template<typename First, typename...Rest >
+		template< typename First, typename...Rest >
 	void logger< log_policy >::print_impl(First parm1, Rest...parm)
 	{
 		log_stream << parm1;
@@ -175,6 +177,12 @@ namespace logging
 	{
 		if( policy )
 		{
+			//Clear the buffer
+			for( auto& elem : log_buffer)
+			{
+				policy->write( elem );
+			}
+			policy->write( "- Logger activity terminated -" );
 			policy->close_ostream();
 			delete policy;
 		}

@@ -7,9 +7,9 @@ extern logging::logger< logging::file_log_policy > log_inst;
 
 
 #ifdef LOGGING_LEVEL_1
-#define LOG( id ) log_inst.print< logging::severity_type::debug , id >
-#define LOG_ERR( id ) log_inst.print< logging::severity_type::error , id >
-#define LOG_WARN( id ) log_inst.print< logging::severity_type::warning , id >
+#define LOG log_inst.print< logging::severity_type::debug >
+#define LOG_ERR log_inst.print< logging::severity_type::error >
+#define LOG_WARN log_inst.print< logging::severity_type::warning >
 #else
 #define LOG(...) 
 #define LOG_ERR(...)
