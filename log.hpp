@@ -104,17 +104,17 @@ namespace logging
 		std::atomic_flag is_still_running{ ATOMIC_FLAG_INIT };
 
 		//Core printing functionality
-		void print_impl(std::stringstream&);
+		void print_impl(std::stringstream&&);
 
 		template<typename First, typename...Rest>
-		void print_impl(std::stringstream&,First parm1,Rest...parm);
+		void print_impl(std::stringstream&&,First&& parm1,Rest&&...parm);
 
-		std::map< std::thread::id , std::string > thread_name;
+		std::map<std::thread::id,std::string> thread_name;
 	public:
 		logger(const std::string& name);
 
 		template< severity_type severity , typename...Args >
-		void print(Args...args);
+		void print(Args&&...args);
 
 		void set_thread_name(const std::string& name);
 		void terminate_logger();
@@ -144,8 +144,8 @@ namespace logging
 	}
 
 	template< typename log_policy >
-		template< severity_type severity , typename...Args >
-	void logger< log_policy >::print( Args...args )
+		template< severity_type severity ,typename...Args >
+	void logger< log_policy >::print(Args&&...args)
 	{
 		std::stringstream log_stream;
 		//Prepare the header
@@ -170,11 +170,11 @@ namespace logging
 				break;
 		};
 		log_stream << thread_name[ std::this_thread::get_id() ] <<", ";
-		print_impl( log_stream, args... );
+		print_impl(std::forward<std::stringstream>(log_stream),std::move(args)...);
 	}
 
 	template< typename log_policy >
-	void logger< log_policy >::print_impl(std::stringstream& log_stream)
+	void logger< log_policy >::print_impl(std::stringstream&& log_stream)
 	{
 		std::lock_guard< std::timed_mutex > lock( write_mutex );
 		log_buffer.push_back(log_stream.str());
@@ -182,10 +182,10 @@ namespace logging
 
 	template< typename log_policy >
 		template< typename First, typename...Rest >
-	void logger< log_policy >::print_impl(std::stringstream& log_stream,First parm1, Rest...parm)
+	void logger< log_policy >::print_impl(std::stringstream&& log_stream,First&& parm1,Rest&&...parm)
 	{
 		log_stream << parm1;
-		print_impl(log_stream,parm...);
+		print_impl(std::forward<std::stringstream>(log_stream),std::move(parm)...);
 	}
 
 	template< typename log_policy >
