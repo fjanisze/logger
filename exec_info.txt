@@ -90,3 +90,14 @@
 100: Avg execution time: 287036 us (2.72013%) 	Avg per print: 3587 ns (2.7205%) 	Exec. loop:5	Threads: 4	Prints: 400000
 101: Avg execution time: 285236 us (-0.627099%) 	Avg per print: 3565 ns (-0.613326%) 	Exec. loop:5	Threads: 4	Prints: 400000
 102: Avg execution time: 292737 us (2.62975%) 	Avg per print: 3659 ns (2.63675%) 	Exec. loop:5	Threads: 4	Prints: 400000
+103: Avg execution time: 326765 us (11.6241%) 	Avg per print: 4084 ns (11.6152%) 	Exec. loop:5	Threads: 4	Prints: 400000
+104: Avg execution time: 282656 us (-13.4987%) 	Avg per print: 3533 ns (-13.4917%) 	Exec. loop:5	Threads: 4	Prints: 400000
+105: Avg execution time: 286057 us (1.20323%) 	Avg per print: 3575 ns (1.18879%) 	Exec. loop:5	Threads: 4	Prints: 400000
+106: Avg execution time: 318863 us (11.4683%) 	Avg per print: 3985 ns (11.4685%) 	Exec. loop:5	Threads: 4	Prints: 400000
+107: Avg execution time: 279155 us (-12.453%) 	Avg per print: 3489 ns (-12.4467%) 	Exec. loop:5	Threads: 4	Prints: 400000
+108: Avg execution time: 293558 us (5.1595%) 	Avg per print: 3669 ns (5.15907%) 	Exec. loop:5	Threads: 4	Prints: 400000
+109: Avg execution time: 287757 us (-1.9761%) 	Avg per print: 3596 ns (-1.98964%) 	Exec. loop:5	Threads: 4	Prints: 400000
+110: Avg execution time: 310362 us (7.85559%) 	Avg per print: 3879 ns (7.86986%) 	Exec. loop:5	Threads: 4	Prints: 400000
+111: Avg execution time: 296359 us (-4.51183%) 	Avg per print: 3704 ns (-4.51147%) 	Exec. loop:5	Threads: 4	Prints: 400000
+112: Avg execution time: 323864 us (9.28097%) 	Avg per print: 4048 ns (9.28726%) 	Exec. loop:5	Threads: 4	Prints: 400000
+113: Avg execution time: 314762 us (-2.81044%) 	Avg per print: 3934 ns (-2.81621%) 	Exec. loop:5	Threads: 4	Prints: 400000

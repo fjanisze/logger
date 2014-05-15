@@ -27,8 +27,8 @@ namespace logging
 	class log_policy_interface
 	{
 	public:
-		virtual void		open_ostream(const std::string& name) = 0;
-		virtual void		close_ostream() = 0;
+		virtual void		open_out_stream(const std::string& name) = 0;
+		virtual void		close_out_stream() = 0;
 		virtual void		write(const std::string& msg) = 0;
 		virtual ~log_policy_interface() = 0;
 	};
@@ -44,8 +44,8 @@ namespace logging
 		std::ofstream out_stream;
 	public:
 		file_log_policy(){   }
-		void open_ostream(const std::string& name);
-		void close_ostream();
+		void open_out_stream(const std::string& name);
+		void close_out_stream();
 		void write(const std::string& msg);
 		~file_log_policy(){}
 	};
@@ -193,7 +193,7 @@ namespace logging
 	{
 		log_line_number = 0;
 
-		policy.open_ostream( name );
+		policy.open_out_stream( name );
 		reference_epoch = std::chrono::high_resolution_clock::now();
 		//Set the running flag ans spawn the daemon
 		is_still_running.test_and_set();
@@ -204,7 +204,7 @@ namespace logging
 	logger< log_policy >::~logger()
 	{
 		policy.write( "- Logger activity terminated -" );
-		policy.close_ostream();
+		policy.close_out_stream();
 	}
 }
 
