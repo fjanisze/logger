@@ -5,7 +5,6 @@
 
 extern logging::logger< logging::file_log_policy > log_inst;
 
-
 #define LOG1 log_inst.print< logging::severity_type::debug1 >
 #define LOG2 log_inst.print< logging::severity_type::debug2 >
 #define LOG3 log_inst.print< logging::severity_type::debug3 >
