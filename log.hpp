@@ -190,7 +190,6 @@ void logger< log_policy >::print_impl(std::stringstream&& log_stream)
 {
     std::lock_guard< std::timed_mutex > lock( write_mutex );
     log_buffer.push_back(log_stream.str());
-    std::cout<<log_stream.str()<<std::endl<<std::flush;
 }
 
 template< typename log_policy >
